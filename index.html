@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Email Spam Detector</title>
+</head>
+<body>
+  <h1>Email Spam Detector</h1>
+  <p>Paste a sample email to check it.</p>
+  <textarea id="email" maxlength="6000" rows="10" cols="70"></textarea>
+  <br><button id="check">Check email</button>
+  <pre id="result">Your result will appear here.</pre>
+
+  <script>
+    const API_URL = "https://ww6oheaq7l.execute-api.ap-southeast-1.amazonaws.com/check";
+
+    document.getElementById("check").addEventListener("click", async () => {
+      const email = document.getElementById("email").value.trim();
+      const result = document.getElementById("result");
+
+      if (!email) {
+        result.textContent = "Enter email text first.";
+        return;
+      }
+
+      result.textContent = "Checking…";
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Request failed");
+
+        result.textContent =
+          `Verdict: ${data.verdict}\nConfidence: ${data.confidence}%\n` +
+          `Reasons: ${(data.reasons || []).join("; ")}\n` +
+          `Suggested action: ${data.action || "None"}`;
+      } catch (error) {
+        result.textContent = "Error: " + error.message;
+      }
+    });
+  </script>
+</body>
+</html>
